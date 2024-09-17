@@ -71,3 +71,20 @@ func (ac *AuthController) Login(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{"token": token})
 }
+
+// GetJwtPubKey handles the retrieval of the JWT public key
+// @Summary Get JWT Public Key
+// @Description Retrieves the public key used to verify JWT signatures in the sept client
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Success 200
+// @Failure 500
+// @Router /api/key [get]
+func (ac *AuthController) GetJwtPubKey(c *fiber.Ctx) error {
+	pub_key, err := ac.authService.LoadPublicKey()
+	if err != nil {
+		return err
+	}
+	return c.JSON(fiber.Map{"public_key": pub_key})
+}

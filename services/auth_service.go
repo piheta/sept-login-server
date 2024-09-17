@@ -1,8 +1,11 @@
 package services
 
 import (
+	"crypto/ecdsa"
 	"crypto/rand"
+	"crypto/x509"
 	"encoding/base64"
+	"encoding/pem"
 	"fmt"
 	"os"
 	"strings"
@@ -23,6 +26,35 @@ func NewAuthService(userRepo *repos.UserRepo) *AuthService {
 	return &AuthService{
 		userRepo: userRepo,
 	}
+}
+
+// Load the private key from a PEM file
+func loadPrivateKey() (*ecdsa.PrivateKey, error) {
+	keyData, err := os.ReadFile("private_key.pem")
+	if err != nil {
+		return nil, fmt.Errorf("could not read private key file: %v", err)
+	}
+
+	block, _ := pem.Decode(keyData)
+	if block == nil || block.Type != "EC PRIVATE KEY" {
+		return nil, fmt.Errorf("failed to decode PEM block containing private key")
+	}
+
+	privateKey, err := x509.ParseECPrivateKey(block.Bytes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse EC private key: %v", err)
+	}
+
+	return privateKey, nil
+}
+
+func (as *AuthService) LoadPublicKey() (string, error) {
+	keyData, err := os.ReadFile("public_key.pem")
+	if err != nil {
+		return "", fmt.Errorf("could not read public key file: %v", err)
+	}
+
+	return string(keyData), nil
 }
 
 func (as *AuthService) HashPassword(password string) (string, error) {
@@ -89,13 +121,17 @@ func (as *AuthService) Login(email, pass string) (*string, error) {
 		"exp":  time.Now().Add(time.Hour * 72).Unix(),
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	token := jwt.NewWithClaims(jwt.SigningMethodES256, claims)
 
 	// Generate encoded token and send it as response
-	jwt, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+	private_key, err := loadPrivateKey()
+	if err != nil {
+		return nil, weberrors.NewError(500, "failed load key")
+	}
+	jwtToken, err := token.SignedString(private_key)
 	if err != nil {
 		return nil, weberrors.NewError(500, "failed to sign token")
 	}
 
-	return &jwt, nil
+	return &jwtToken, nil
 }

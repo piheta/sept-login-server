@@ -53,6 +53,7 @@ func NewRouter(
 
 	api := app.Group("/api")
 	// Public Routes
+	api.Get("/key", authController.GetJwtPubKey)
 	api.Post("/login", authController.Login)
 	api.Post("/users/", userController.CreateUser)
 

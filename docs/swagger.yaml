@@ -39,6 +39,22 @@ info:
   title: sept-login-server
   version: "0.1"
 paths:
+  /api/key:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves the public key used to verify JWT signatures in the sept
+        client
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "500":
+          description: Internal Server Error
+      summary: Get JWT Public Key
+      tags:
+      - Auth
   /api/login:
     post:
       consumes:

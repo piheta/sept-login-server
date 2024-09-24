@@ -1,5 +1,5 @@
-# JWT Sept Login Server Setup
-This guide shows how to get an sept login server up and running, using a postgres database container as example.
+# Sept Login Server Setup
+This guide shows how to get a sept login server running, using a postgres database container as example.
 
 ## Generate Keypair for signing and verifying JWT Keys
 
@@ -12,14 +12,6 @@ openssl ec -in private_key.pem -pubout -out public_key.pem
 
 ```bash
 docker run --name sept-login -p 5432:5432 -e POSTGRES_PASSWORD=password -d postgres
-```
-
-## Configure Database Connection
-
-Set the following environment variable:
-
-```bash
-export DATABASE_SECRET="host=localhost user=postgres password=password dbname=postgres port=5432 sslmode=disable TimeZone=Europe/Oslo"
 ```
 
 ## Run the Application

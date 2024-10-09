@@ -99,7 +99,7 @@ func (as *AuthService) verifyPassword(password, hashedPassword string) (bool, er
 	return base64.StdEncoding.EncodeToString(computedHash) == encodedHash, nil
 }
 
-func (as *AuthService) Login(email, pass string) (*string, error) {
+func (as *AuthService) Login(email, pass, public_key string) (*string, error) {
 	user, err := as.userRepo.GetUserByEmail(email)
 	if err != nil {
 		return nil, err
@@ -115,10 +115,11 @@ func (as *AuthService) Login(email, pass string) (*string, error) {
 	}
 
 	claims := jwt.MapClaims{
-		"sub":  user.Email,
-		"id":   user.ID,
-		"name": user.Name,
-		"exp":  time.Now().Add(time.Hour * 72).Unix(),
+		"sub":        user.Email,
+		"id":         user.ID,
+		"name":       user.Name,
+		"exp":        time.Now().Add(time.Hour * 72).Unix(),
+		"public_key": public_key,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodES256, claims)

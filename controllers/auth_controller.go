@@ -28,12 +28,17 @@ func mapReqToJWT(c *fiber.Ctx) *models.JWT {
 		return nil
 	}
 
+	pubKeyStr, ok := claims["public_key"].(string)
+	if !ok {
+		return nil
+	}
+
 	id, err := uuid.Parse(idStr)
 	if err != nil {
 		return nil
 	}
 
-	jwt := models.JWT{ID: id, Name: nameStr, Sub: subjectStr}
+	jwt := models.JWT{ID: id, Name: nameStr, Sub: subjectStr, PublicKey: pubKeyStr}
 	return &jwt
 }
 
@@ -64,7 +69,7 @@ func (ac *AuthController) Login(c *fiber.Ctx) error {
 		return weberrors.NewError(400, err.Error())
 	}
 
-	token, err := ac.authService.Login(loginRequest.Email, loginRequest.Password)
+	token, err := ac.authService.Login(loginRequest.Email, loginRequest.Password, loginRequest.PublicKey)
 	if err != nil {
 		return err
 	}

@@ -115,7 +115,6 @@ func (as *AuthService) Login(email, pass, public_key string) (*string, error) {
 	}
 
 	claims := jwt.MapClaims{
-		"sub":        user.Email,
 		"id":         user.ID,
 		"name":       user.Name,
 		"exp":        time.Now().Add(time.Hour * 72).Unix(),

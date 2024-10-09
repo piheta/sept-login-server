@@ -29,7 +29,7 @@ func NewAuthService(userRepo *repos.UserRepo) *AuthService {
 }
 
 // Load the private key from a PEM file
-func loadPrivateKey() (*ecdsa.PrivateKey, error) {
+func (as *AuthService) loadPrivateKey() (*ecdsa.PrivateKey, error) {
 	keyData, err := os.ReadFile("private_key.pem")
 	if err != nil {
 		return nil, fmt.Errorf("could not read private key file: %v", err)
@@ -48,13 +48,28 @@ func loadPrivateKey() (*ecdsa.PrivateKey, error) {
 	return privateKey, nil
 }
 
-func (as *AuthService) LoadPublicKey() (string, error) {
+func LoadPublicKey() (*ecdsa.PublicKey, string, error) {
 	keyData, err := os.ReadFile("public_key.pem")
 	if err != nil {
-		return "", fmt.Errorf("could not read public key file: %v", err)
+		return nil, "", fmt.Errorf("could not read public key file: %w", err)
 	}
 
-	return string(keyData), nil
+	block, _ := pem.Decode(keyData)
+	if block == nil || block.Type != "PUBLIC KEY" {
+		return nil, "", fmt.Errorf("failed to decode PEM block containing public key")
+	}
+
+	pub, err := x509.ParsePKIXPublicKey(block.Bytes)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to parse public key: %w", err)
+	}
+
+	ecdsaPub, ok := pub.(*ecdsa.PublicKey)
+	if !ok {
+		return nil, "", fmt.Errorf("not an ECDSA public key")
+	}
+
+	return ecdsaPub, string(keyData), nil
 }
 
 func (as *AuthService) HashPassword(password string) (string, error) {
@@ -124,7 +139,7 @@ func (as *AuthService) Login(email, pass, public_key string) (*string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodES256, claims)
 
 	// Generate encoded token and send it as response
-	private_key, err := loadPrivateKey()
+	private_key, err := as.loadPrivateKey()
 	if err != nil {
 		return nil, weberrors.NewError(500, "failed load key")
 	}

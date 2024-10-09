@@ -13,6 +13,7 @@ import (
 	"github.com/piheta/sept-login-server/controllers"
 	_ "github.com/piheta/sept-login-server/docs"
 	weberrors "github.com/piheta/sept-login-server/errors"
+	"github.com/piheta/sept-login-server/services"
 )
 
 func NewRouter(
@@ -56,9 +57,14 @@ func NewRouter(
 	api.Post("/login", authController.Login)
 	api.Post("/users/", userController.CreateUser)
 
+	public_key, _, err := services.LoadPublicKey()
+	if err != nil {
+		return nil
+	}
+
 	// JWT Middleware
 	api.Use(jwtware.New(jwtware.Config{
-		// SigningKey: jwtware.SigningKey{Key: []byte(os.Getenv("JWT_SECRET"))},
+		SigningKey: jwtware.SigningKey{JWTAlg: jwtware.ES256, Key: public_key},
 		ErrorHandler: func(c *fiber.Ctx, err error) error {
 			return fiber.NewError(fiber.StatusUnauthorized, "invalid or expired jwt")
 		},

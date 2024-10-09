@@ -87,9 +87,10 @@ func (ac *AuthController) Login(c *fiber.Ctx) error {
 // @Failure 500
 // @Router /api/key [get]
 func (ac *AuthController) GetJwtPubKey(c *fiber.Ctx) error {
-	pub_key, err := ac.authService.LoadPublicKey()
+	_, pub_key, err := services.LoadPublicKey()
 	if err != nil {
 		return err
 	}
+
 	return c.JSON(fiber.Map{"public_key": pub_key})
 }

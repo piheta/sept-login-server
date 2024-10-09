@@ -2,7 +2,6 @@ package config
 
 import (
 	"errors"
-	"os"
 
 	json "github.com/goccy/go-json"
 	jwtware "github.com/gofiber/contrib/jwt"
@@ -59,7 +58,7 @@ func NewRouter(
 
 	// JWT Middleware
 	api.Use(jwtware.New(jwtware.Config{
-		SigningKey: jwtware.SigningKey{Key: []byte(os.Getenv("JWT_SECRET"))},
+		// SigningKey: jwtware.SigningKey{Key: []byte(os.Getenv("JWT_SECRET"))},
 		ErrorHandler: func(c *fiber.Ctx, err error) error {
 			return fiber.NewError(fiber.StatusUnauthorized, "invalid or expired jwt")
 		},
